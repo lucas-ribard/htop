@@ -18,10 +18,13 @@ void print_processes(WINDOW *win) {
     char line[256];
     int pid;
     char process_name[256];
-
-    // Clear the window
+    
+ // Clear the window
     wclear(win);
+    
     mvwprintw(win, 0, 0, "Press 'R' to refresh \n");
+
+   
     // Open the /proc directory
     if ((dir = opendir("/proc")) == NULL) {
         perror("Unable to open /proc");
@@ -67,7 +70,7 @@ void print_processes(WINDOW *win) {
 int main() {
     WINDOW *mainwin;
     int ch;
-
+    
     // Initialize ncurses
     if ((mainwin = initscr()) == NULL) {
         fprintf(stderr, "Error initializing ncurses.\n");
@@ -77,6 +80,9 @@ int main() {
     // Enable keypad
     keypad(mainwin, TRUE);
     timeout(0);
+
+    // Print the screen one to not have a black screen
+    print_processes(mainwin);
 
     // Main loop
     
