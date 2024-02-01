@@ -10,6 +10,7 @@
 #define MAX_PROCESSES 1024
 #define DEFAULT_COLOR 1
 #define HIGHLIGHT_COLOR 2
+#define HIGHLIGHT_COLOR_SECONDARY 3
 
 // Function prototype for print_process_info
 void print_process_info(WINDOW *win, int pid);
@@ -28,18 +29,24 @@ void print_processes(WINDOW *win) {
     wclear(win);
 
     // Initialize color pairs
-    // Initialize color pairs
     start_color();
     // Define the DEFAULT_COLOR constant
     
     // Initialize the color pair
+                //state      //text color //background color
     init_pair(DEFAULT_COLOR, COLOR_WHITE, COLOR_BLACK);
     
     init_pair(HIGHLIGHT_COLOR, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(HIGHLIGHT_COLOR_SECONDARY, COLOR_CYAN, COLOR_BLACK);
 
+    // Set highlight color secondary ( cyan )
+    attron(COLOR_PAIR(HIGHLIGHT_COLOR_SECONDARY));
 
     mvwprintw(win, 0, 0, "Press 'R' to refresh \n");
 
+    // Reset to default color
+    attroff(COLOR_PAIR(HIGHLIGHT_COLOR));
+    
     // Open the /proc directory
     if ((dir = opendir("/proc")) == NULL) {
         perror("Unable to open /proc");
@@ -101,7 +108,8 @@ void print_process_info(WINDOW *win, int pid) {
             // Parse the contents
             unsigned long utime, stime;
             unsigned long rss;
-
+            // Extract the required values from the line
+            // The required values are: utime, stime, and rss
             sscanf(line, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %lu %lu %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %*u %lu", &utime, &stime, &rss);
 
                 
@@ -136,6 +144,8 @@ int main() {
     // Enable keypad
     keypad(mainwin, TRUE);
     timeout(0);
+
+    
 
     // Print the screen one to not have a black screen
     print_processes(mainwin);
