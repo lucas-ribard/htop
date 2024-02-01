@@ -8,6 +8,8 @@
 #include <linux/limits.h>
 
 #define MAX_PROCESSES 1024
+#define DEFAULT_COLOR 1
+#define HIGHLIGHT_COLOR 2
 
 // Function prototype for print_process_info
 void print_process_info(WINDOW *win, int pid);
@@ -24,6 +26,17 @@ void print_processes(WINDOW *win) {
 
     // Clear the window
     wclear(win);
+
+    // Initialize color pairs
+    // Initialize color pairs
+    start_color();
+    // Define the DEFAULT_COLOR constant
+    
+    // Initialize the color pair
+    init_pair(DEFAULT_COLOR, COLOR_WHITE, COLOR_BLACK);
+    
+    init_pair(HIGHLIGHT_COLOR, COLOR_YELLOW, COLOR_BLACK);
+
 
     mvwprintw(win, 0, 0, "Press 'R' to refresh \n");
 
@@ -75,6 +88,8 @@ void print_process_info(WINDOW *win, int pid) {
     FILE *fp;
     char path[PATH_MAX];
     char line[256];
+    // Set default color ( White )
+    attron(COLOR_PAIR(DEFAULT_COLOR));
 
     // Construct the path to the stat file for the process
     snprintf(path, sizeof(path), "/proc/%d/stat", pid);
@@ -89,11 +104,19 @@ void print_process_info(WINDOW *win, int pid) {
 
             sscanf(line, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %lu %lu %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %*u %lu", &utime, &stime, &rss);
 
-            
+                
+                // Set highlight color ( Yellow )
+                attron(COLOR_PAIR(HIGHLIGHT_COLOR));
 
-            // calculate and print CPU and RAM usage for the process
-            unsigned long total_time = utime + stime;
-            wprintw(win, "  CPU Usage: %lu ms, RAM Usage: %lu KB\n", total_time, rss);
+                // calculate and print CPU and RAM usage for the process
+                unsigned long total_time = utime + stime;
+                wprintw(win, "  CPU Usage: %lu ms, RAM Usage: %lu KB\n", total_time, rss);
+
+                // Reset to default color
+                attroff(COLOR_PAIR(HIGHLIGHT_COLOR));
+
+           
+           
         }
         fclose(fp);
     }
