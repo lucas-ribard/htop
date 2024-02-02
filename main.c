@@ -35,7 +35,6 @@ void print_processes(WINDOW *win) {
     // Initialize the color pair
                 //state      //text color //background color
     init_pair(DEFAULT_COLOR, COLOR_WHITE, COLOR_BLACK);
-    
     init_pair(HIGHLIGHT_COLOR, COLOR_YELLOW, COLOR_BLACK);
     init_pair(HIGHLIGHT_COLOR_SECONDARY, COLOR_CYAN, COLOR_BLACK);
 
@@ -72,8 +71,8 @@ void print_processes(WINDOW *win) {
                     strncpy(process_name, line, sizeof(process_name) - 1);
                     process_name[sizeof(process_name) - 1] = '\0';
 
-                    // Print PID and process name in the window with a newline character
-                    wprintw(win, "PID: %d, Name: %s\n", pid, process_name);
+                    // Print process id (PID) and process name in the window with a newline character
+                    wprintw(win, "PID : %d      Name : %s\n", pid, process_name);
 
                     // Display CPU and RAM usage for the process
                     print_process_info(win, pid);
@@ -106,23 +105,35 @@ void print_process_info(WINDOW *win, int pid) {
         // Read the contents of the stat file
         if (fgets(line, sizeof(line), fp) != NULL) {
             // Parse the contents
-            unsigned long utime, stime;
-            unsigned long rss;
-            // Extract the required values from the line
-            // The required values are: utime, stime, and rss
+            unsigned long long total_time, total_system_time;
+            unsigned long long user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
+            unsigned long utime, stime, rss;
+
+            // Parse the process times from /proc/[pid]/stat
             sscanf(line, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %lu %lu %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %*u %lu", &utime, &stime, &rss);
 
-                
-                // Set highlight color ( Yellow )
-                attron(COLOR_PAIR(HIGHLIGHT_COLOR));
+            total_time = utime + stime;
 
-                // calculate and print CPU and RAM usage for the process
-                unsigned long total_time = utime + stime;
-                wprintw(win, "  CPU Usage: %lu ms, RAM Usage: %lu KB\n", total_time, rss);
+            // Parse the system times from /proc/stat
+            FILE *fp = fopen("/proc/stat", "r");
+            fscanf(fp, "cpu %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu", &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest, &guest_nice);
+            fclose(fp);
 
-                // Reset to default color
-                attroff(COLOR_PAIR(HIGHLIGHT_COLOR));
+            total_system_time = user + nice + system + idle + iowait + irq + softirq + steal;
+            
 
+             // Calculate the CPU usage
+            double cpu_usage = 100.0 * total_time / total_system_time;
+
+            // Set highlight color ( Yellow )
+            attron(COLOR_PAIR(HIGHLIGHT_COLOR));
+            
+
+            // calculate and print CPU and RAM usage for the process
+            wprintw(win, "  CPU Usage : %.2f%%\n", cpu_usage);
+
+            // Reset to default color
+            attroff(COLOR_PAIR(HIGHLIGHT_COLOR));
            
            
         }
